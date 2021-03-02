@@ -98,6 +98,7 @@
     - [WebChromeClient](#webchromeclient)
   - [Webview 加载优化](#webview-加载优化)
   - [内存泄漏](#内存泄漏)
+
 # Activity
 ## 生命周期  
 ![](http://gityuan.com/images/lifecycle/activity.png)

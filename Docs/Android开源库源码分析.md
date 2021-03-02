@@ -6,6 +6,7 @@
   - [自定义注解](#%e8%87%aa%e5%ae%9a%e4%b9%89%e6%b3%a8%e8%a7%a3)
   - [注册订阅者](#%e6%b3%a8%e5%86%8c%e8%ae%a2%e9%98%85%e8%80%85)
   - [发送事件](#%e5%8f%91%e9%80%81%e4%ba%8b%e4%bb%b6)
+
 # LeakCanary
 ![](http://ww1.sinaimg.cn/large/006dXScfly1fj22w7flt4j30z00mrtc0.jpg)
 
@@ -260,6 +261,7 @@ public void register(Object subscriber) {
 
 - 通过反射查找订阅者类里的订阅事件，添加到 ``METHOD_CACHE`` 中
   
+
 ``SubscriberMethodFinder.java``
 ```java
 private static final Map<Class<?>, List<SubscriberMethod>> METHOD_CACHE = new ConcurrentHashMap<>();

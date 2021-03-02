@@ -8,6 +8,11 @@
     - [方法区](#方法区)
   - [方法指令](#方法指令)
   - [类加载器](#类加载器)
+  - [类加载过程](#类加载过程)
+    - [加载](#加载)
+    - [连接](#连接)
+    - [初始化](#初始化)
+  - [java对象内存布局](#java对象内存布局)
   - [垃圾回收 gc](#垃圾回收-gc)
     - [对象存活判断](#对象存活判断)
     - [垃圾收集算法](#垃圾收集算法)
@@ -56,7 +61,9 @@
 - [引用类型](#引用类型)
 - [动态代理](#动态代理)
 - [元注解](#元注解)
+
 # JVM
+
 ## JVM 工作流程
 ![](https://user-gold-cdn.xitu.io/2019/6/23/16b833f4a4906226?w=448&h=592&f=jpeg&s=44057)
 
@@ -146,7 +153,7 @@ Java堆是垃圾收集器管理的主要区域，从内存回收的角度来看�
 
 ## 类加载过程
 
-类加载分为三个步骤：**加载，连接，初始化**
+类加载分为三个步骤：**加载，连接，初始化，使用，卸载**
 
 ![类加载流程](https://img-blog.csdn.net/20180509152218380?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTM1MzQwNzE=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
@@ -397,6 +404,54 @@ public int hashCode() {
 
 ### HashMap 的工作原理
 HashMap 基于 hashing 原理，我们通过 put() 和 get() 方法储存和获取对象。当我们将键值对传递给 put() 方法时，它调用键对象的 hashCode() 方法来计算 hashcode，让后找到 bucket 位置来储存 Entry 对象。当两个对象的 hashcode 相同时，它们的 bucket 位置相同，‘碰撞’会发生。因为 HashMap 使用链表存储对象，这个 Entry 会存储在链表中，当获取对象时，通过键对象的 equals() 方法找到正确的键值对，然后返回值对象。
+
+```java
+static final int hash(Object key) {
+    int h;
+    //先得到key的hashcode，再将hashcode的值无符号右移，最后通过异或（^）算出结果。
+    //>>>：表示无符号右移，也叫逻辑右移，即若该数为正，则高位补0，而若该数为负数，则右移后高位同样补0
+    //异或（^）：相同则结果为0，不同则结果为1。
+    return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+}
+```
+
+HashMap初始化，带有初始化容量跟负载因子的构造函数。
+
+```java
+public HashMap(int initialCapacity, float loadFactor) {
+    if (initialCapacity < 0)
+        throw new IllegalArgumentException("Illegal initial capacity: " +
+                                           initialCapacity);
+    if (initialCapacity > MAXIMUM_CAPACITY)
+        initialCapacity = MAXIMUM_CAPACITY;
+    if (loadFactor <= 0 || Float.isNaN(loadFactor))
+        throw new IllegalArgumentException("Illegal load factor: " +
+                                           loadFactor);
+    this.loadFactor = loadFactor;
+    this.threshold = tableSizeFor(initialCapacity);
+}
+```
+
+重点看tableSizeFor方法。
+
+```java
+/**
+ * Returns a power of two size for the given target capacity.
+ */
+static final int tableSizeFor(int cap) {
+    //通过或运算符，再通过表示无符号右移最终算出结果
+    //|：或运算符，两个位只要有一个为1，那么结果就是1，否则就为0。
+    int n = cap - 1;
+    n |= n >>> 1;
+    n |= n >>> 2;
+    n |= n >>> 4;
+    n |= n >>> 8;
+    n |= n >>> 16;
+    return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+}
+```
+
+或运算符用符号“|”表示
 
 **如果 HashMap 的大小超过了负载因子(load factor)定义的容量，怎么办？**  
 默认的负载因子大小为 0.75，也就是说，当一个 map 填满了 75% 的 bucket 时候，和其它集合类(如 ArrayList 等)一样，将会创建原来 HashMap 大小的两倍的 bucket 数组，来重新调整 map 的大小，并将原来的对象放入新的 bucket 数组中。这个过程叫作 rehashing，因为它调用 hash 方法找到新的 bucket 位置。
